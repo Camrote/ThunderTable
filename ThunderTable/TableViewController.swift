@@ -596,6 +596,45 @@ open class TableViewController: UITableViewController, UIContentSizeCategoryAdju
         }
     }
     
+    private var _contextMenuIndexPathMap: [IndexPath : Any] = [:]
+    
+    // We can't @available a stored property due to the compiler not liking it, so we have to have this computed property unfortunately.
+    @available(iOS 13.0, *)
+    private var contextMenuIndexPathMap: [IndexPath : UIContextMenuConfiguration] {
+        return _contextMenuIndexPathMap.compactMapValues { (value) -> UIContextMenuConfiguration? in
+            return value as? UIContextMenuConfiguration
+        }
+    }
+    
+    @available(iOS 13.0, *)
+    open override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let (section, row) = self[indexPath] else { return nil }
+        let configuration = row.contextMenuConfiguration(at: point, for: indexPath, in: tableView) ?? section.sectionContextMenuConfiguration(at: point, for: indexPath, in: tableView)
+        _contextMenuIndexPathMap[indexPath] = configuration
+        return configuration
+    }
+    
+    @available(iOS 13.0, *)
+    open override func tableView(_ tableView: UITableView, previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let indexPath = contextMenuIndexPathMap.first(where: { (arg) -> Bool in
+            let (_, value) = arg
+            return value == configuration
+        })?.key else { return nil }
+        guard let (section, row) = self[indexPath] else { return nil }
+        return row.previewForDismissingContextMenu(with: configuration, at: indexPath, in: tableView) ?? section.sectionPreviewForDismissingContextMenu(with: configuration, at: indexPath, in: tableView)
+    }
+    
+    @available(iOS 13.0, *)
+    open override func tableView(_ tableView: UITableView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let indexPath = contextMenuIndexPathMap.first(where: { (arg) -> Bool in
+            let (_, value) = arg
+            return value == configuration
+        })?.key else { return nil }
+        guard let (section, row) = self[indexPath] else { return nil }
+        return row.previewForHighlightingContextMenu(with: configuration, at: indexPath, in: tableView) ?? section.sectionPreviewForHighlightingContextMenu(with: configuration, at: indexPath, in: tableView)
+    }
+	
+    
     //MARK: -
     //MARK: Scroll Offset Management
     //MARK:
@@ -648,6 +687,7 @@ open class TableViewController: UITableViewController, UIContentSizeCategoryAdju
 	//MARK - variable header/footer size
 	
 	private var headerTranslatesAutoResizingMask: Bool = false
+    
 	private var footerTranslatesAutoResizingMask: Bool = false
 	
 	public func sizeHeaderToFit() {

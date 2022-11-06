@@ -210,7 +210,7 @@ public extension UIImageView {
         })
     }
     
-    func cancelCurrentRequestOperations(callingCompletion: Bool = true) {
+    private func cancelCurrentRequestOperations(callingCompletion: Bool = true) {
         if callingCompletion {
             completion?(nil, ImageViewError.cancelledDueToNewUrl)
         }
