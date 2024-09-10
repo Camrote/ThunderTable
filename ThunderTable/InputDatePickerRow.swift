@@ -28,7 +28,7 @@ open class InputDatePickerRow: InputTableRow {
         /// Use a style for the date picker that allows editing in place.
         case inline = 3
         
-        @available (iOS 13.4, *)
+        @available(iOS 13.4, *)
         var datePickerStyle: UIDatePickerStyle {
             switch self {
             case .automatic:
